@@ -32,6 +32,18 @@ async def on_ready():
 	"""Login success informative log"""
 	logger.info("Logged in as {}", bot.user)
 
+"""Config by commands"""
+@bot.command(
+	name="build",
+	aliases=["builds"],
+	help="Build a deck from any given cards based on TWDA, takes any number of card names to build a deck sample",
+	brief="Build a deck from any given cards based on TWDA",
+	usage="mrw build \"Fame\" \"Carrion Crows\"",
+)
+async def msg_build(ctx, *args):
+	logger.info("Received instructions {}", ctx.message.content)
+	build.build(args)
+
 def main():
 	"""Entrypoint for the Discord Bot"""
 	logger.setLevel(logging.INFO)
