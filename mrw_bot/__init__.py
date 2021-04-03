@@ -29,6 +29,9 @@ from krcg import twda
 from krcg_cli.subcommands import _utils
 logger = logging.logger
 
+import discord_argparse
+from . import parser
+bot.help_command = parser.MyHelpCommand()
 
 @bot.listen()
 async def on_ready():
@@ -126,6 +129,29 @@ async def msg_affinity(ctx, *args):
 	for card in cards:
 		card_names = card_names + card.name + ", "
 	await ctx.send("Affinity for " + card_names[:-2] + "```" + str + "```")
+
+
+@bot.command(
+	name="top",
+	#aliases=["affi"],
+	help="Display top cards (most played together) based on TWDA, take any number of arguments",
+	brief="Display top cards (most played together)",
+	usage="clan=!Toreador discipline=AUS",
+)
+async def msg_top(ctx, *, params: parser.parser=parser.parser.defaults()):
+	for k,v in params.items():
+		# case of antitribu marked as "!Clan"
+		if k == "clan" and v[0] == "!":
+			v = v[1:] + " antitribu"
+			params[k] = v
+
+		# check inputs
+		if v not in vtes.VTES.search_dimensions[k]:
+			logger.error("Value {v} not in {k}".format(v=v,k=k))
+			await ctx.send("`{v}` not in `{k}` possibilities".format(v=v,k=k))
+			return False
+		else:
+			await ctx.send("`{v}` is a legal value for `{k}` argument".format(v=v,k=k))
 
 
 def main():
