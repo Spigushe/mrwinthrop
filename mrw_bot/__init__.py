@@ -4,6 +4,7 @@ import collections
 import datetime
 import os
 import re
+import io
 import urllib.parse
 
 from dotenv import load_dotenv
@@ -19,13 +20,14 @@ if intents become necessary at some point:
 bot = commands.Bot(command_prefix=commands.when_mentioned_or('mrw '))
 
 from krcg import logging
+logger = logging.logger
+
 from krcg import analyzer
 from krcg import vtes
-from krcg_cli import parser
-#from krcg_cli.subcommands import *
-
-logger = logging.logger
-client = discord.Client()
+from krcg import twda
+# Initialize VTES and TWDA
+vtes.VTES.load()
+twda.TWDA.load()
 
 
 @bot.listen()
@@ -46,17 +48,24 @@ async def msg_build(ctx, *args):
 	logger.info("Received instructions {}", ctx.message.content)
 
 	card_list = ctx.message.content[10:]
-	cards = card_list.split("|") if "|" in card_list else card_list
+	cards = card_list.split("|") if "|" in card_list else card_list.split()
 	logger.info("Cards: {}", cards)
 
-	cmd = ['build']
-	if len(cards) > 1:
-		cmd = cmd + cards
-	else:
-		cmd = cmd + cards.split()
-	print(cmd)
+	decks = list(twda.TWDA.values())
+	try:
+		cards = [vtes.VTES[name] for name in cards]
+	except KeyError as e:
+		sys.stderr.write(f"Card not found: {e.args[0]}\n")
+		return 1
 
-	parser.execute(cmd)
+	# Generating output file
+	deck_list = io.StringIO(analyzer.Analyzer(decks).build_deck(*cards).to_txt())
+	deck_name = card_list + ".txt"
+	# Still needs to generate VDB deck link to replace content="info"
+	# Sending file
+	await ctx.channel.send(content="info", file=discord.File(fp=deck_list, filename=deck_name))
+	# Close object and discard memory buffer
+	deck_list.close()
 
 
 def main():
