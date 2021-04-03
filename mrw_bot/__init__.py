@@ -48,20 +48,16 @@ async def on_ready():
 async def msg_build(ctx, *args):
 	logger.info("Received instructions {}", ctx.message.content)
 
-	card_list = ctx.message.content.split("build ",1)[1]
-	cards = card_list.split("|") if "|" in card_list else [card_list]
-	logger.info("Cards: {}", cards)
-
-	decks = list(twda.TWDA.values())
 	try:
+		card_list = ctx.message.content.split("build ",1)[1]
+		cards = card_list.split("|") if "|" in card_list else [card_list]
 		cards = [vtes.VTES[name] for name in cards]
-		print(cards)
 	except KeyError as e:
 		await ctx.message.reply(f"Card not found: {e.args[0]}\n")
 		return False
 
 	# Generating output file
-	deck_list = analyzer.Analyzer(decks).build_deck(*cards)
+	deck_list = analyzer.Analyzer(list(twda.TWDA.values())).build_deck(*cards)
 	deck_name = card_list + ".txt"
 	deck_file = io.StringIO(deck_list.to_txt())
 
