@@ -28,6 +28,7 @@ from krcg import logging
 from krcg import analyzer
 from krcg import vtes
 from krcg import twda
+from krcg_cli.subcommands import _utils
 logger = logging.logger
 
 
@@ -72,6 +73,54 @@ async def msg_build(ctx, *args):
 	await ctx.channel.send(content=link, file=discord.File(fp=deck_file, filename=deck_name))
 	deck_file.close()
 
+
+@bot.command(
+	name="affinity",
+	#aliases=["builds"],
+	help="Display cards affinity (most played together) based on TWDA, takes any number of card names to build a deck sample",
+	brief="Display cards affinity (most played together)",
+	usage="Fame",
+)
+async def msg_affinity(ctx, *args):
+	logger.info("Received instructions {}", ctx.message.content)
+
+	try:
+		card_list = ctx.message.content.split("affinity ",1)[1]
+		cards = card_list.split("|") if "|" in card_list else [card_list]
+		cards = [vtes.VTES[name] for name in cards]
+	except KeyError as e:
+		await ctx.message.reply(f"Card not found: {e.args[0]}")
+		return False
+
+	try:
+		A = analyzer.Analyzer(list(twda.TWDA.values()))
+		A.refresh(*cards, similarity=1)
+		candidates = A.candidates(*cards, spoiler_multiplier=1.5)
+	except analyzer.AnalysisError as e:
+		await ctx.message.reply(f"No example in TWDA")
+		return False
+
+	if len(A.examples) < 4:
+		str = "Too few example in TWDA\n"
+		if len(A.examples) > 0:
+			str = str + "To see them:\n\tkrcg deck " + " ".join('"' + card.name + '"' for card in cards)
+		await ctx.send(str)
+		return True
+
+	str = ""
+	for card, score in candidates:
+		score = round(score * 100 / len(cards))
+		if score < 25:
+			break
+		str = str + (
+			f"{card.name:<30} (in {score:.0f}% of decks, typically "
+			f"{_utils.typical_copies(A, card)})\n"
+		)
+	card_names = ""
+	for card in cards:
+		card_names = card_names + card.name + ", "
+	await ctx.send("Affinity for " + card_names[:-2] + "```" + str + "```")
+	return True
 
 def main():
 	"""Entrypoint for the Discord Bot"""
