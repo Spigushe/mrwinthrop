@@ -17,17 +17,18 @@ if intents become necessary at some point:
 	intents = discord.Intents.all()
 	bot = commands.Bot(command_prefix=commands.when_mentioned_or('mrw '), intents=intents)
 """
-bot = commands.Bot(command_prefix=commands.when_mentioned_or('mrw '))
+bot = commands.Bot(
+	# Starting with longest strings
+	# Doc: https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#discord.ext.commands.Bot.command_prefix
+	command_prefix=commands.when_mentioned_or('mr.winthrop ','winthrop ','mr.w ','mrw '),
+	case_insensitive=True
+)
 
 from krcg import logging
-logger = logging.logger
-
 from krcg import analyzer
 from krcg import vtes
 from krcg import twda
-# Initialize VTES and TWDA
-vtes.VTES.load()
-twda.TWDA.load()
+logger = logging.logger
 
 
 @bot.listen()
@@ -47,25 +48,33 @@ async def on_ready():
 async def msg_build(ctx, *args):
 	logger.info("Received instructions {}", ctx.message.content)
 
-	card_list = ctx.message.content[10:]
-	cards = card_list.split("|") if "|" in card_list else card_list.split()
+	card_list = ctx.message.content.split("build ",1)[1]
+	cards = card_list.split("|") if "|" in card_list else [card_list]
 	logger.info("Cards: {}", cards)
 
 	decks = list(twda.TWDA.values())
 	try:
 		cards = [vtes.VTES[name] for name in cards]
+		print(cards)
 	except KeyError as e:
-		sys.stderr.write(f"Card not found: {e.args[0]}\n")
-		return 1
+		await ctx.message.reply(f"Card not found: {e.args[0]}\n")
+		return False
 
 	# Generating output file
-	deck_list = io.StringIO(analyzer.Analyzer(decks).build_deck(*cards).to_txt())
+	deck_list = analyzer.Analyzer(decks).build_deck(*cards)
 	deck_name = card_list + ".txt"
-	# Still needs to generate VDB deck link to replace content="info"
-	# Sending file
-	await ctx.channel.send(content="info", file=discord.File(fp=deck_list, filename=deck_name))
-	# Close object and discard memory buffer
-	deck_list.close()
+	deck_file = io.StringIO(deck_list.to_txt())
+
+	# Generating VDB link
+	link = "https://vdb.smeea.casa/decks?name=" + re.sub(" ","_",card_list) + "&author=Mr.Winthrop#"
+	for card, count in deck_list.cards(lambda c: c.crypt):
+		link = link + str(card.id) + "=" + str(count) + ";"
+	for card, count in deck_list.cards(lambda c: c.library):
+		link = link + str(card.id) + "=" + str(count) + ";"
+	link = link[:-1]
+
+	await ctx.channel.send(content=link, file=discord.File(fp=deck_file, filename=deck_name))
+	deck_file.close()
 
 
 def main():
@@ -73,6 +82,7 @@ def main():
 	logger.setLevel(logging.INFO)
 	# use latest card texts
 	vtes.VTES.load()
+	twda.TWDA.load()
 	bot.run(os.getenv("DISCORD_TOKEN"))
 	# reset log level so as to not mess up tests
 	logger.setLevel(logging.NOTSET)
