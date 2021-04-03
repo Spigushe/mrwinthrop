@@ -18,8 +18,6 @@ if intents become necessary at some point:
 	bot = commands.Bot(command_prefix=commands.when_mentioned_or('mrw '), intents=intents)
 """
 bot = commands.Bot(
-	# Starting with longest strings
-	# Doc: https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#discord.ext.commands.Bot.command_prefix
 	command_prefix=commands.when_mentioned_or('mr.winthrop ','winthrop ','mr.w ','mrw '),
 	case_insensitive=True
 )
@@ -58,9 +56,13 @@ async def msg_build(ctx, *args):
 		return False
 
 	# Generating output file
-	deck_list = analyzer.Analyzer(list(twda.TWDA.values())).build_deck(*cards)
-	deck_name = card_list + ".txt"
-	deck_file = io.StringIO(deck_list.to_txt())
+	try:
+		deck_list = analyzer.Analyzer(list(twda.TWDA.values())).build_deck(*cards)
+		deck_name = card_list + ".txt"
+		deck_file = io.StringIO(deck_list.to_txt())
+	except analyzer.AnalysisError as e:
+		await ctx.message.reply(f"No example in TWDA")
+		return False
 
 	# Generating VDB link
 	link = "https://vdb.smeea.casa/decks?name=" + re.sub(" ","_",card_list) + "&author=Mr.Winthrop#"
@@ -76,10 +78,10 @@ async def msg_build(ctx, *args):
 
 @bot.command(
 	name="affinity",
-	#aliases=["builds"],
+	#aliases=["affi"],
 	help="Display cards affinity (most played together) based on TWDA, takes any number of card names to build a deck sample",
 	brief="Display cards affinity (most played together)",
-	usage="Fame",
+	usage="Fame|Carrion Crows",
 )
 async def msg_affinity(ctx, *args):
 	logger.info("Received instructions {}", ctx.message.content)
@@ -108,7 +110,11 @@ async def msg_affinity(ctx, *args):
 		return True
 
 	str = ""
+	i = 0
 	for card, score in candidates:
+		i = i + 1
+		if i > 5:
+			break
 		score = round(score * 100 / len(cards))
 		if score < 25:
 			break
@@ -120,7 +126,7 @@ async def msg_affinity(ctx, *args):
 	for card in cards:
 		card_names = card_names + card.name + ", "
 	await ctx.send("Affinity for " + card_names[:-2] + "```" + str + "```")
-	return True
+
 
 def main():
 	"""Entrypoint for the Discord Bot"""
