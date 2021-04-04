@@ -139,19 +139,28 @@ async def msg_affinity(ctx, *args):
 	usage="clan=!Toreador discipline=AUS",
 )
 async def msg_top(ctx, *, params: parser.parser=parser.parser.defaults()):
-	for k,v in params.items():
-		# case of antitribu marked as "!Clan"
-		if k == "clan" and v[0] == "!":
-			v = v[1:] + " antitribu"
-			params[k] = v
+	# case of antitribu marked as "!Clan"
+	if "clan" in params.keys():
+		if params["clan"][0] == "!":
+			params["clan"] = params["clan"][1:] + " antitribu"
 
-		# check inputs
-		if v not in vtes.VTES.search_dimensions[k]:
-			logger.error("Value {v} not in {k}".format(v=v,k=k))
-			await ctx.send("`{v}` not in `{k}` possibilities".format(v=v,k=k))
-			return False
-		else:
-			await ctx.send("`{v}` is a legal value for `{k}` argument".format(v=v,k=k))
+	exclude_type = params.pop("exclude", None)
+	if exclude_type:
+		params["type"] = list(
+			params.get("type", set())
+			| (set(vtes.VTES.search_dimensions["type"]) - set(exclude_type))
+		)
+		params["exclude-type"] = params["exclude"]
+	if "text" in params.keys():
+		params["text"] = " ".join(params.pop("text") or [])
+	args = {k: v for k, v in params.items() if v}
+	print(args)
+
+	candidates = vtes.VTES.search(**args)
+	if not candidates:
+		await ctx.send("No result in TWDA")
+		return 1
+
 
 
 def main():
