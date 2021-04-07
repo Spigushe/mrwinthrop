@@ -1,8 +1,11 @@
 import collections
 import json
+
 from discord.ext import commands
 from discord_argparse import *
+
 from krcg import vtes
+import arrow
 
 class MyHelpCommand(commands.DefaultHelpCommand):
 	async def send_command_help(self, command):
@@ -116,3 +119,36 @@ parser = ArgumentConverter(
 	)
 )
 parser.sort()
+
+twda = ArgumentConverter(
+	card = OptionalArgument(
+		str,
+		doc="Filter by card names: 'Fame|Carrion Crows'",
+		default=""
+	),
+	deck = OptionalArgument(
+		str,
+		doc="TWDA ID of a deck: 2016gncbg",
+		default=""
+	),
+	players = OptionalArgument(
+		int,
+		doc="Minimum number of players",
+		default=0
+	),
+	date_from = OptionalArgument(
+		lambda s: arrow.get(s).date(),
+		doc="Year (included) for deck searching",
+		default=arrow.get(1994).date()
+	),
+	date_to = OptionalArgument(
+		lambda s: arrow.get(s).date(),
+		doc="Year (excluded) for deck searching",
+		default=arrow.now().date()
+	),
+	author = OptionalArgument(
+		str,
+		doc="Looking for TWDA by player name",
+		default=""
+	)
+)

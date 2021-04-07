@@ -218,6 +218,63 @@ async def msg_top(ctx, *, params: parser.parser=parser.parser.defaults()):
 	"""
 
 
+@bot.command(
+	name="deck",
+	#aliases=["twda"],
+	help="Display a list of TWDA decks from IDs, author names or card names, take any number of arguments",
+	brief="Display a list of TWDA decks from IDs, author names or card names",
+	usage="author='Ben Peal'",
+)
+async def msg_deck(ctx, *, args: parser.twda=parser.twda.defaults()):
+	logger.info("Received instructions {}", ctx.message.content)
+
+	# deck_ids
+	deck_ids = _u.unpack(args["deck"])
+	deck_ids = [i for i in deck_ids if i in twda.TWDA]
+
+	# cards
+	cards = _u.unpack(args["card"])
+	cards = [vtes.VTES[c] for c in cards if c in vtes.VTES]
+
+	# authors
+	authors = _u.unpack(args["author"])
+	authors = [_u.normalize(a) for a in authors if _u.normalize(a) in twda.TWDA.by_author]
+
+	decks = _u.filter_twda(args)
+	if deck_ids or cards or authors:
+		decks = [
+			d
+			for d in decks
+			if d.id in deck_ids
+			or (cards and all(c in d for c in cards))
+			or _u.normalize(d.player) in authors
+			or _u.normalize(d.author) in authors
+		]
+
+	if len(decks) == 1:
+		full = True
+	else:
+		full = False
+		output = f"-- {len(decks)} decks --\n"
+
+
+	for d in sorted(decks, key=lambda a: a.date):
+		if full:
+			output = f"[{d.id:<15}]===================================================\n"
+			output = output +_u.to_vdb(d,d.id)
+			deck_file = io.StringIO(d.to_txt())
+			await ctx.channel.send(content=output, file=discord.File(fp=deck_file, filename=d.id))
+			deck_file.close()
+		else:
+			output = output + f"[{d.id}] {d.name}\n"
+			if len(output) > 500:
+				output = output + "..."
+				break
+
+	if not full:
+		await ctx.send("```"+output+"```")
+
+
 
 def main():
 	"""Entrypoint for the Discord Bot"""
