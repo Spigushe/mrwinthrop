@@ -33,6 +33,8 @@ import discord_argparse
 from . import parser
 bot.help_command = parser.MyHelpCommand()
 
+from . import utils as _u
+
 @bot.listen()
 async def on_ready():
 	"""Login success informative log"""
@@ -52,7 +54,7 @@ async def msg_build(ctx, *args):
 
 	try:
 		card_list = ctx.message.content.split("build ",1)[1]
-		cards = card_list.split("|") if "|" in card_list else [card_list]
+		cards = _u.unpack(card_list)
 		cards = [vtes.VTES[name] for name in cards]
 	except KeyError as e:
 		await ctx.message.reply(f"Card not found: {e.args[0]}\n")
@@ -67,15 +69,7 @@ async def msg_build(ctx, *args):
 		await ctx.message.reply(f"No example in TWDA")
 		return False
 
-	# Generating VDB link
-	link = "https://vdb.smeea.casa/decks?name=" + re.sub(" ","_",card_list) + "&author=Mr.Winthrop#"
-	for card, count in deck_list.cards(lambda c: c.crypt):
-		link = link + str(card.id) + "=" + str(count) + ";"
-	for card, count in deck_list.cards(lambda c: c.library):
-		link = link + str(card.id) + "=" + str(count) + ";"
-	link = link[:-1]
-
-	await ctx.channel.send(content=link, file=discord.File(fp=deck_file, filename=deck_name))
+	await ctx.channel.send(content=_u.to_vdb(deck_list,re.sub(" ","_",card_list)), file=discord.File(fp=deck_file, filename=deck_name))
 	deck_file.close()
 
 
@@ -91,7 +85,7 @@ async def msg_affinity(ctx, *args):
 
 	try:
 		card_list = ctx.message.content.split("affinity ",1)[1]
-		cards = card_list.split("|") if "|" in card_list else [card_list]
+		cards = _u.unpack(card_list)
 		cards = [vtes.VTES[name] for name in cards]
 	except KeyError as e:
 		await ctx.message.reply(f"Card not found: {e.args[0]}")
@@ -139,11 +133,12 @@ async def msg_affinity(ctx, *args):
 	usage="clan=!Toreador discipline=aus",
 )
 async def msg_top(ctx, *, params: parser.parser=parser.parser.defaults()):
+	logger.info("Received instructions {}", ctx.message.content)
 	await ctx.send("I'm sorry dear Metuselah, I'm still working on it, it should be available soon")
 	return True
 
 	"""Here is legacy code that I used to check errors but nothing went well"""
-	
+
 	"""
 	await ctx.send("Looking for {a} ?".format(a=", ".join(params.keys())))
 
