@@ -32,82 +32,87 @@ class ArgumentConverter(ArgumentConverter):
 parser = ArgumentConverter(
 	discipline = OptionalArgument(
 		str,
-		doc="Filter by discipline ({})".format(",".join(vtes.VTES.search_dimensions["discipline"]))
+		doc="Filter by discipline ({})".format(",".join(vtes.VTES.search_dimensions["discipline"])),
+		default=""
 	),
 	clan = OptionalArgument(
 		str,
-		doc="Filter by clan ({})".format(",".join(vtes.VTES.search_dimensions["clan"]))
+		doc="Filter by clan ({})".format(",".join(vtes.VTES.search_dimensions["clan"])),
+		default=""
 	),
 	type = OptionalArgument(
 		str,
-		doc="Filter by card type ({})".format(",".join(vtes.VTES.search_dimensions["type"]))
+		doc="Filter by card type ({})".format(",".join(vtes.VTES.search_dimensions["type"])),
+		default=""
 	),
 	group = OptionalArgument(
 		str,
 		doc="Filter by grouping ({})".format(
-			",".join(map(str, vtes.VTES.search_dimensions["group"]))
+			",".join(map(str, vtes.VTES.search_dimensions["group"])),
+			default=""
 		)
 	),
 	bonus = OptionalArgument(
 		str,
 		doc="Filter by bonus ({})".format(",".join(vtes.VTES.search_dimensions["bonus"])),
-		default=None
+		default=""
 	),
 	text = OptionalArgument(
 		str,
-		doc="Filter by text (including name and flavor text)"
+		doc="Filter by text (including name and flavor text)",
+		default=""
 	),
 	trait = OptionalArgument(
 		str,
 		doc="Filter by trait ({})".format(",".join(vtes.VTES.search_dimensions["trait"])),
-		default=None
+		default=""
 	),
 	capacity = OptionalArgument(
 		str,
 		doc="Filter by capacity ({})".format(
 			",".join(map(str, vtes.VTES.search_dimensions["capacity"])),
-			default=None
+			default=""
 		)
 	),
 	set = OptionalArgument(
 		str,
 		doc="Filter by set",
-		default=None
+		default=""
 	),
 	sect = OptionalArgument(
 		str,
 		doc="Filter by sect ({})".format(",".join(vtes.VTES.search_dimensions["sect"])),
-		default=None
+		default=""
 	),
 	title = OptionalArgument(
 		str,
 		doc="Filter by title ({})".format(",".join(vtes.VTES.search_dimensions["title"])),
-		default=None
+		default=""
 	),
 	city = OptionalArgument(
 		str,
 		doc="Filter by city",
-		default=None
+		default=""
 	),
 	rarity = OptionalArgument(
 		str,
 		doc="Filter by rarity ({})".format(",".join(vtes.VTES.search_dimensions["rarity"])),
-		default=None
+		default=""
 	),
 	precon = OptionalArgument(
 		str,
 		doc="Filter by preconstructed starter",
-		default=None
+		default=""
 	),
 	artist = OptionalArgument(
 		str,
 		doc="Filter by artist",
-		default=None
+		default=""
 	),
 	exclude = OptionalArgument(
 		str,
 		doc="Exclude given types ({})".format(",".join(vtes.VTES.search_dimensions["type"])),
-		default=None
+		default=""
 	)
 )
 parser.sort()
