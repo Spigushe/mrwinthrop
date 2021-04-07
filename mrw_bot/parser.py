@@ -148,7 +148,7 @@ twda = ArgumentConverter(
 	),
 	author = OptionalArgument(
 		str,
-		doc="Looking for TWDA by player name",
+		doc="Looking for TWDA by player name: 'Ben peal'",
 		default=""
 	)
 )
