@@ -10,6 +10,7 @@ def normalize(s):
 		return s
 	return unidecode.unidecode(s).lower().strip()
 
+
 def filter_twda(args):
 	decks = list(twda.TWDA.values())
 	if args["date_from"]:
@@ -19,6 +20,7 @@ def filter_twda(args):
 	if args["players"]:
 		decks = [d for d in decks if d.players_count >= args["players"]]
 	return decks
+
 
 def to_vdb(deck,name: str = "New KRCG deck"):
 	link = f"https://vdb.smeea.casa/decks?name={name}&author=Mr.Winthrop#"

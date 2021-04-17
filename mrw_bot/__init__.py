@@ -6,6 +6,7 @@ import os
 import re
 import io
 import urllib.parse
+import random
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -216,6 +217,24 @@ async def msg_top(ctx, *, params: parser.parser=parser.parser.defaults()):
 		await ctx.send("No result in TWDA")
 		return 1
 	"""
+@bot.command(
+	name="seats",
+	#aliases=["random"],
+	help="Randomise seating",
+	brief="Display top cards (most played together)",
+	usage="Player 1 | Player 2 | Player 3 | Player 4 | Player 5",
+)
+async def msg_top(ctx, args):
+	logger.info("Received instructions {}", ctx.message.content)
+	players = _u.unpack(ctx.message.content.split("seats ",1)[1])
+	seats = []
+	while len(players) > 0:
+		seat = random.randint(0,len(players)-1)
+		player = players.pop(seat)
+		if " " in player[len(player)-1]:
+			player = player[:-1]
+		seats.append(player)
+	await ctx.send(" > ".join(seats))
 
 
 @bot.command(
