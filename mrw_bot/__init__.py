@@ -133,90 +133,11 @@ async def msg_affinity(ctx, *args):
 	brief="Display top cards (most played together)",
 	usage="clan=!Toreador discipline=aus",
 )
-async def msg_top(ctx, *, params: parser.parser=parser.parser.defaults()):
+async def msg_top(ctx, *, args: parser.vtes=parser.vtes.defaults()):
 	logger.info("Received instructions {}", ctx.message.content)
 	await ctx.send("I'm sorry dear Metuselah, I'm still working on it, it should be available soon")
-	return True
 
-	"""Here is legacy code that I used to check errors but nothing went well"""
 
-	"""
-	await ctx.send("Looking for {a} ?".format(a=", ".join(params.keys())))
-
-	args = {
-		k: v
-		for k, v in params.items()
-		if k
-		in {
-			"discipline",
-			"clan",
-			"type",
-			"group",
-			"exclude",
-			"bonus",
-			"text",
-			"trait",
-			"capacity",
-			"set",
-			"sect",
-			"title",
-			"city",
-			"rarity",
-			"precon",
-			"artist",
-		}
-	}
-
-	exclude_type = args.pop("exclude", None)
-	if exclude_type:
-		args["type"] = list(
-			args.get("type", set())
-			| (set(TypeChoice.get_choices()) - set(exclude_type))
-		)
-	args["text"] = " ".join(args.pop("text") or [])
-	args = {k: v for k, v in args.items() if v}
-	print(vtes.VTES.search(**args))
-	"""
-
-	"""
-	params = {}
-
-	for arg in args:
-		(k,v) = arg.split("=")
-		print(f"I think you are looking for {v} in the {k} dimension")
-		if k == "clan" and v[0] == "!":
-			v = v[1:] + " antitribu"
-			print(f"I've changed the value of the {k} dimension to: **{v}**")
-		if k not in ['text','city','artist'] and v not in vtes.VTES.search_dimensions[k]:
-			print(f"{v} is not a correct parameter of {k}")
-		else:
-			params[k] = v
-
-	print(params)
-	print(vtes.VTES.search(**params))
-	"""
-	"""
-	# case of antitribu marked as "!Clan"
-	if "clan" in params.keys():
-		if params["clan"][0] == "!":
-			params["clan"] = params["clan"][1:] + " antitribu"
-
-	exclude_type = params.pop("exclude", None)
-	if exclude_type:
-		params["type"] = list(
-			params.get("type", set())
-			| (set(vtes.VTES.search_dimensions["type"]) - set(exclude_type))
-		)
-	#if "text" in params.keys():
-		#params["text"] = " ".join(params.pop("text") or [])
-
-	print(params)
-
-	candidates = vtes.VTES.search(**params)
-	if not candidates:
-		await ctx.send("No result in TWDA")
-		return 1
-	"""
 @bot.command(
 	name="seats",
 	#aliases=["random"],
