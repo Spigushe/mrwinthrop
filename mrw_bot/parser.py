@@ -31,105 +31,96 @@ class ArgumentConverter(ArgumentConverter):
 	def get_args(self):
 		return self.arguments.keys()
 
+	def __add__(self, other):
+		args = {}
+		for k,v in self.arguments.items():
+			args[k] = v
+		for k,v in other.arguments.items():
+			if k in args.keys():
+				pass
+			args[k] = v
+		return ArgumentConverter(**args)
 
-parser = ArgumentConverter(
+
+vtes = ArgumentConverter(
 	discipline = OptionalArgument(
 		str,
-		doc="Filter by discipline ({})".format(",".join(vtes.VTES.search_dimensions["discipline"])),
-		default=""
+		doc="Filter by discipline ({})".format(",".join(vtes.VTES.search_dimensions["discipline"]))
 	),
 	clan = OptionalArgument(
 		str,
-		doc="Filter by clan ({})".format(",".join(vtes.VTES.search_dimensions["clan"])),
-		default=""
+		doc="Filter by clan ({})".format(",".join(vtes.VTES.search_dimensions["clan"]))
 	),
 	type = OptionalArgument(
 		str,
-		doc="Filter by card type ({})".format(",".join(vtes.VTES.search_dimensions["type"])),
-		default=""
+		doc="Filter by card type ({})".format(",".join(vtes.VTES.search_dimensions["type"]))
 	),
 	group = OptionalArgument(
 		str,
 		doc="Filter by grouping ({})".format(
-			",".join(map(str, vtes.VTES.search_dimensions["group"])),
-			default=""
+			",".join(map(str, vtes.VTES.search_dimensions["group"]))
 		)
 	),
 	bonus = OptionalArgument(
 		str,
-		doc="Filter by bonus ({})".format(",".join(vtes.VTES.search_dimensions["bonus"])),
-		default=""
+		doc="Filter by bonus ({})".format(",".join(vtes.VTES.search_dimensions["bonus"]))
 	),
 	text = OptionalArgument(
 		str,
-		doc="Filter by text (including name and flavor text)",
-		default=""
+		doc="Filter by text (including name and flavor text)"
 	),
 	trait = OptionalArgument(
 		str,
-		doc="Filter by trait ({})".format(",".join(vtes.VTES.search_dimensions["trait"])),
-		default=""
+		doc="Filter by trait ({})".format(",".join(vtes.VTES.search_dimensions["trait"]))
 	),
 	capacity = OptionalArgument(
 		str,
 		doc="Filter by capacity ({})".format(
-			",".join(map(str, vtes.VTES.search_dimensions["capacity"])),
-			default=""
+			",".join(map(str, vtes.VTES.search_dimensions["capacity"]))
 		)
 	),
 	set = OptionalArgument(
 		str,
-		doc="Filter by set",
-		default=""
+		doc="Filter by set"
 	),
 	sect = OptionalArgument(
 		str,
-		doc="Filter by sect ({})".format(",".join(vtes.VTES.search_dimensions["sect"])),
-		default=""
+		doc="Filter by sect ({})".format(",".join(vtes.VTES.search_dimensions["sect"]))
 	),
 	title = OptionalArgument(
 		str,
-		doc="Filter by title ({})".format(",".join(vtes.VTES.search_dimensions["title"])),
-		default=""
+		doc="Filter by title ({})".format(",".join(vtes.VTES.search_dimensions["title"]))
 	),
 	city = OptionalArgument(
 		str,
-		doc="Filter by city",
-		default=""
+		doc="Filter by city"
 	),
 	rarity = OptionalArgument(
 		str,
-		doc="Filter by rarity ({})".format(",".join(vtes.VTES.search_dimensions["rarity"])),
-		default=""
+		doc="Filter by rarity ({})".format(",".join(vtes.VTES.search_dimensions["rarity"]))
 	),
 	precon = OptionalArgument(
 		str,
-		doc="Filter by preconstructed starter",
-		default=""
+		doc="Filter by preconstructed starter"
 	),
 	artist = OptionalArgument(
 		str,
-		doc="Filter by artist",
-		default=""
+		doc="Filter by artist"
 	),
 	exclude = OptionalArgument(
 		str,
-		doc="Exclude given types ({})".format(",".join(vtes.VTES.search_dimensions["type"])),
-		default=""
+		doc="Exclude given types ({})".format(",".join(vtes.VTES.search_dimensions["type"]))
 	)
 )
-parser.sort()
 
 twda = ArgumentConverter(
 	card = OptionalArgument(
 		str,
-		doc="Filter by card names: 'Fame|Carrion Crows'",
-		default=""
+		doc="Filter by card names: 'Fame|Carrion Crows'"
 	),
 	deck = OptionalArgument(
 		str,
-		doc="TWDA ID of a deck: 2016gncbg",
-		default=""
+		doc="TWDA ID of a deck: 2016gncbg"
 	),
 	players = OptionalArgument(
 		int,
@@ -148,7 +139,9 @@ twda = ArgumentConverter(
 	),
 	author = OptionalArgument(
 		str,
-		doc="Looking for TWDA by player name: 'Ben peal'",
-		default=""
+		doc="Looking for TWDA by player name: 'Ben peal'"
 	)
 )
+
+# Building full parser
+full = vtes + twda
