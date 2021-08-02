@@ -23,12 +23,14 @@ bot = commands.Bot(
 	case_insensitive=True
 )
 
-from krcg import logging
 from krcg import analyzer
 from krcg import vtes
 from krcg import twda
 from krcg_cli.subcommands import _utils
-logger = logging.logger
+
+import logging
+logger = logging.getLogger()
+logging.basicConfig(format="[%(levelname)7s] %(message)s")
 
 import discord_argparse
 from . import parser
