@@ -26,6 +26,8 @@ bot = commands.Bot(
 from krcg import analyzer
 from krcg import vtes
 from krcg import twda
+
+import mrw_bot.utils as _u
 from krcg_cli.subcommands import _utils
 
 import logging
@@ -33,15 +35,14 @@ logger = logging.getLogger()
 logging.basicConfig(format="[%(levelname)7s] %(message)s")
 
 import discord_argparse
-from . import parser
+import mrw_bot.parser as parser
 bot.help_command = parser.MyHelpCommand()
 
-from . import utils as _u
 
 @bot.listen()
 async def on_ready():
 	"""Login success informative log"""
-	logger.info("Logged in as {}", bot.user)
+	logger.info("Logged in as %s", bot.user)
 
 
 """Config by commands"""
@@ -53,7 +54,7 @@ async def on_ready():
 	usage="Fame|Carrion Crows",
 )
 async def msg_build(ctx, *args):
-	logger.info("Received instructions {}", ctx.message.content)
+	logger.info("Received instructions %s", ctx.message.content)
 
 	try:
 		card_list = ctx.message.content.split("build ",1)[1]
@@ -136,8 +137,8 @@ async def msg_affinity(ctx, *args):
 	usage="clan=!Toreador discipline=aus",
 )
 async def msg_top(ctx, *, args: parser.vtes=parser.vtes.defaults()):
-	logger.info("Received instructions {}", ctx.message.content)
 	await ctx.send("I'm sorry dear Metuselah, I'm still working on it, it should be available soon")
+	logger.info("Received instructions %s", ctx.message.content)
 
 
 @bot.command(
@@ -148,7 +149,7 @@ async def msg_top(ctx, *, args: parser.vtes=parser.vtes.defaults()):
 	usage="Player 1 | Player 2 | Player 3 | Player 4 | Player 5",
 )
 async def msg_top(ctx, args):
-	logger.info("Received instructions {}", ctx.message.content)
+	logger.info("Received instructions %s", ctx.message.content)
 	players = _u.unpack(ctx.message.content.split("seats ",1)[1])
 	seats = []
 	while len(players) > 0:
@@ -168,7 +169,7 @@ async def msg_top(ctx, args):
 	usage="author='Ben Peal'",
 )
 async def msg_deck(ctx, *, args: parser.twda=parser.twda.defaults()):
-	logger.info("Received instructions {}", ctx.message.content)
+	logger.info("Received instructions %s", ctx.message.content)
 
 	# deck_ids
 	deck_ids = _u.unpack(args["deck"])
@@ -225,5 +226,3 @@ def main():
 	vtes.VTES.load()
 	twda.TWDA.load()
 	bot.run(os.getenv("DISCORD_TOKEN"))
-	# reset log level so as to not mess up tests
-	logger.setLevel(logging.NOTSET)
