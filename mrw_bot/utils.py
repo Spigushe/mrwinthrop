@@ -22,10 +22,3 @@ def filter_twda(args):
 	return decks
 
 
-def to_vdb(deck,name: str = "New KRCG deck"):
-	link = f"https://vdb.smeea.casa/decks?name={name}&author=Mr.Winthrop#"
-	for card, count in deck.cards(lambda c: c.crypt):
-		link = link + str(card.id) + "=" + str(count) + ";"
-	for card, count in deck.cards(lambda c: c.library):
-		link = link + str(card.id) + "=" + str(count) + ";"
-	return link[:-1]

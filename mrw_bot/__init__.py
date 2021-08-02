@@ -70,7 +70,7 @@ async def msg_build(ctx, *args):
 		await ctx.message.reply(f"No example in TWDA")
 		return False
 
-	await ctx.channel.send(content=_u.to_vdb(deck_list,re.sub(" ","_",card_list)), file=discord.File(fp=deck_file, filename=deck_name))
+	await ctx.channel.send(content=deck_list.to_vdb(), file=discord.File(fp=deck_file, filename=deck_name))
 	deck_file.close()
 
 
