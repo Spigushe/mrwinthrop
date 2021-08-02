@@ -82,7 +82,7 @@ async def msg_build(ctx, *args):
 	usage="Fame|Carrion Crows",
 )
 async def msg_affinity(ctx, *args):
-	logger.info("Received instructions {}", ctx.message.content)
+	logger.info("Received instructions %s", ctx.message.content)
 
 	try:
 		card_list = ctx.message.content.split("affinity ",1)[1]
