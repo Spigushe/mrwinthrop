@@ -3,7 +3,7 @@ import logging
 import os
 import io
 import random
-import arrow
+from datetime import date
 from dotenv import load_dotenv
 
 import discord
@@ -28,8 +28,24 @@ def shorten(str):
     return str
 
 
+def last_word(str) -> str:
+    # taking empty string
+    new = ""
+    # calculating length of string
+    length = len(str)
+    # traversing from last
+    for i in range(length - 1, 0, -1):
+        # if space is occured then return
+        if str[i] == " ":
+            # return reverse of newstring
+            return new[::-1]
+        else:
+            new = new + str[i]
+    return new
+
+
 #: Functions to deal with commands
-def fn_build(message: str) -> dict:
+def fn_build(message: str, args: list) -> dict:
     """Build command
 
     Args:
@@ -60,7 +76,7 @@ def fn_build(message: str) -> dict:
     }
 
 
-def fn_affinity(message: str) -> dict:
+def fn_affinity(message: str, args: list) -> dict:
     """Affinity command
 
     Args:
@@ -115,7 +131,7 @@ def fn_affinity(message: str) -> dict:
     return {"content": "Affinity for " + card_names[:-2] + "```" + str + "```"}
 
 
-def fn_top(message: str) -> dict:
+def fn_top(message: str, args: list) -> dict:
     """Top command
 
     Args:
@@ -124,10 +140,13 @@ def fn_top(message: str) -> dict:
     Returns:
         Keyword args for the discord channel.send() function
     """
-    return {"content": "I'm working on being better, sir/madam"}
+    return {
+        "content": "List of arguments: "
+        + ",".join([(str(a["arg"]) + " " + str(a["content"])) for a in args])
+    }
 
 
-def fn_deck(message: str) -> dict:
+def fn_deck(message: str, args: list) -> dict:
     """Deck command
 
     Args:
@@ -136,10 +155,13 @@ def fn_deck(message: str) -> dict:
     Returns:
         Keyword args for the discord channel.send() function
     """
-    return {"content": "I'm working on being better, sir/madam"}
+    return {
+        "content": "List of arguments: "
+        + ",".join([(str(a["arg"]) + " " + str(a["content"])) for a in args])
+    }
 
 
-def fn_seats(message: str) -> dict:
+def fn_seats(message: str, args: list) -> dict:
     """Seats command
 
     Args:
@@ -159,7 +181,7 @@ def fn_seats(message: str) -> dict:
     return {"content": " > ".join(seats)}
 
 
-def fn_help(message: str) -> dict:
+def fn_help(message: str, args: list) -> dict:
     """Help command
 
     Args:
@@ -325,15 +347,15 @@ TWDA_ARGS = [
     },
     {
         "name": "date_from",
-        "type": lambda s: arrow.get(s).date(),
+        "type": int,
         "doc": "Year (included) for deck searching",
-        "default": arrow.get(1994).date(),
+        "default": 1994,
     },
     {
         "name": "date_to",
-        "type": lambda s: arrow.get(s).date(),
+        "type": int,
         "doc": "Year (excluded) for deck searching",
-        "default": arrow.now().date(),
+        "default": date.today().year,
     },
     {
         "name": "author",
@@ -419,7 +441,7 @@ async def on_message(message: discord.Message):
         return
 
     if message.content.lower().startswith(PREFIXES):
-        command, content = trim_message(message.content, PREFIXES, COMMANDS)
+        command, content, args = handle_message(message.content, PREFIXES, COMMANDS)
 
         # Execute command
         if command:
@@ -428,7 +450,7 @@ async def on_message(message: discord.Message):
                 command["name"] or "none",
                 content,
             )
-            await message.channel.send(**CALLS[command["name"]](content))
+            await message.channel.send(**CALLS[command["name"]](content, args))
         # Default behaviour
         else:
             logger.info(
@@ -438,7 +460,7 @@ async def on_message(message: discord.Message):
             await message.reply("Here's a cup of fresh blood, sir/madam")
 
 
-def trim_message(message: str, prefixes: tuple, commands: tuple) -> str:
+def handle_message(message: str, prefixes: tuple, commands: tuple) -> str:
     """Function that removes start of message
 
     Args:
@@ -447,20 +469,47 @@ def trim_message(message: str, prefixes: tuple, commands: tuple) -> str:
     Returns:
         Two strings: command and instructions
     """
-    message = message.lower()
     # Check for prefix
     for p in prefixes:
-        if message.startswith(p):
+        if message.lower().startswith(p):
             message = message[len(p) :]
             break
     # Check for command
     command = None
     for c in commands:
-        if message.startswith(c["name"]):
+        if message.lower().startswith(c["name"]):
             command = c
             message = message[len(c["name"]) + 1 :]
             break
-    return command, message
+    # Check for arguments
+    args = []
+    if command and "arguments" in command.keys():
+        look_args = message
+        arg_presence = True
+        while arg_presence:
+            arg_presence = False
+            look_args = look_args.strip()
+            for a in command["arguments"]:
+                test = look_args.split("=", 1)[0]
+                if test.lower() == a["name"]:
+                    # Get value of arg
+                    print(f"look_args: {look_args}")
+                    arg = look_args[len(test) + 1 :].split("=", 1)[0]
+                    if "=" in look_args[len(test) + 1 :]:
+                        # There is a need to remove the next argument key
+                        arg = arg[: (len(last_word(arg)) + 1) * -1]
+                    # Check type
+                    if not isinstance(arg, a["type"]):
+                        arg = a["type"](arg)  # Convert to chosen type
+                    # Add to list of args
+                    args.append({"arg": test, "content": arg})
+                    # Updating string
+                    look_args = look_args[len(test) + len(str(arg)) + 1 :]
+                    arg_presence = True
+
+        print(args)
+
+    return command, message, args
 
 
 def main():
