@@ -138,6 +138,14 @@ def fn_deck(message: str) -> dict:
 
 
 def fn_seats(message: str) -> dict:
+    """Seats command
+
+    Args:
+        message containing list of players
+
+    Returns:
+        Keyword args for the discord channel.send() function
+    """
     players = unpack(message)
     seats = []
     while len(players) > 0:
@@ -233,7 +241,7 @@ def trim_message(message: str, prefixes: tuple, commands: tuple) -> str:
         message: The message received, with prefix
 
     Returns:
-        Dict of both command and instructions
+        Two strings: command and instructions
     """
     message = message.lower()
     # Check for prefix
