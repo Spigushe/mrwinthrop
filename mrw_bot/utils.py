@@ -1,6 +1,5 @@
 import unidecode
 from krcg import twda
-from krcg import vtes
 
 
 def unpack(str):
@@ -23,9 +22,3 @@ def filter_twda(args):
     if args["players"]:
         decks = [d for d in decks if d.players_count >= args["players"]]
     return decks
-
-
-def filter_vtes(**kwargs):
-    from krcg import cards
-
-    search = cards.CardSearch()

@@ -1,12 +1,7 @@
 """Discord Bot"""
-import asyncio
-import collections
-import datetime
 import logging
 import os
-import re
 import io
-import urllib.parse
 import random
 from dotenv import load_dotenv
 
@@ -48,7 +43,7 @@ def fn_build(message: str) -> dict:
         deck_list = analyzer.Analyzer(list(twda.TWDA.values())).build_deck(*cards)
         deck_name = message + ".txt"
         deck_file = io.StringIO(deck_list.to_txt())
-    except analyzer.AnalysisError as e:
+    except analyzer.AnalysisError:
         return {"content": "No example in TWDA"}
 
     # Returning file to dicord
@@ -79,7 +74,7 @@ def fn_affinity(message: str) -> dict:
         A = analyzer.Analyzer(list(twda.TWDA.values()))
         A.refresh(*cards, similarity=1)
         candidates = A.candidates(*cards, spoiler_multiplier=1.5)
-    except analyzer.AnalysisError as e:
+    except analyzer.AnalysisError:
         return {"content": "No example in TWDA"}
 
     # Too few example
@@ -162,25 +157,37 @@ PREFIXES = ("mr.winthrop ", "winthrop ", "mr.w ", "mrw ")
 COMMANDS = (
     {
         "name": "build",
-        "help": "Build a deck from any given card(s) based on TWDA, takes any number of card names to build a deck sample",
+        "help": (
+            "Build a deck from any given card(s) based on TWDA, "
+            + "takes any number of card names to build a deck sample"
+        ),
         "brief": "Build a deck from any given card(s) based on TWDA",
         "usage": "Fame|Carrion Crows",
     },
     {
         "name": "affinity",
-        "help": "Display cards affinity (most played together) based on TWDA, takes any number of card names to build a deck sample",
+        "help": (
+            "Display cards affinity (most played together) based on TWDA, "
+            + "takes any number of card names to build a deck sample"
+        ),
         "brief": "Display cards affinity (most played together)",
         "usage": "Fame|Carrion Crows",
     },
     {
         "name": "top",
-        "help": "Display top cards (most played together) based on TWDA, take any number of arguments",
+        "help": (
+            "Display top cards (most played together) based on TWDA, "
+            + "take any number of arguments"
+        ),
         "brief": "Display top cards (most played together)",
         "usage": "clan=!Toreador discipline=aus",
     },
     {
         "name": "deck",
-        "help": "Display a list of TWDA decks from IDs, author names or card names, take any number of arguments",
+        "help": (
+            "Display a list of TWDA decks from IDs, author names or card names, "
+            + "take any number of arguments"
+        ),
         "brief": "Display a list of TWDA decks from IDs, author names or card names",
         "usage": "author='Ben Peal'",
     },
@@ -204,13 +211,13 @@ load_dotenv()
 
 @client.event
 async def on_ready():
-    """Login success informative log."""
+    """Login success informative log"""
     logger.info("Logged in as %s", client.user)
 
 
 @client.event
 async def on_message(message: discord.Message):
-    """Main message loop."""
+    """Main message loop"""
     if message.author == client.user:
         return
 
