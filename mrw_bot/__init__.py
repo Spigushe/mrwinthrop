@@ -3,6 +3,7 @@ import logging
 import os
 import io
 import random
+import arrow
 from dotenv import load_dotenv
 
 import discord
@@ -19,6 +20,12 @@ client = discord.Client()
 
 def unpack(str):
     return str.split("|") if "|" in str else [str]
+
+
+def shorten(str):
+    if len(str) > 80:
+        return str[:77] + "..."
+    return str
 
 
 #: Functions to deal with commands
@@ -152,6 +159,189 @@ def fn_seats(message: str) -> dict:
     return {"content": " > ".join(seats)}
 
 
+def fn_help(message: str) -> dict:
+    """Help command
+
+    Args:
+        message containing list of players
+
+    Returns:
+        Keyword args for the discord channel.send() function
+    """
+    # message = (message or " ").lower()
+    message = message.lower()
+    # General helper
+    if message.replace(" ", "") == "":
+        # Getting max_size of command names
+        max_size = max(len(c["name"]) for c in COMMANDS)
+        # Building str
+        str = "List of commands:\n"
+        # List
+        for c in COMMANDS:
+            if "display" in c.keys() and c["display"] == "no":
+                continue
+
+            str = str + shorten(f"  {c['name']:<{max_size}} {c['brief']}") + "\n"
+        # Footer
+        str = str + "\nType mrw help command for more info on a command."
+        return {"content": "```" + str + "```"}
+
+    # Command helper
+    if message in [c["name"] for c in COMMANDS]:
+        for c in COMMANDS:
+            if message != c["name"]:
+                continue
+            # Building str
+            str = "mrw {0} {1}\n\n".format(c["name"], c["usage"])
+            # Adding detailed explanation
+            str = str + f"{c['help']}\n\n"
+            # Adding args
+            if "arguments" in c.keys():
+                str = str + "List of arguments:\n"
+                max_size = max(len(a["name"]) for a in c["arguments"])
+                for a in c["arguments"]:
+                    str = str + shorten(f"  {a['name']:<{max_size}} {a['doc']}") + "\n"
+
+            return {"content": "```" + str + "```"}
+
+
+#: Arguments for detailed commands
+VTES_ARGS = [
+    {
+        "name": "discipline",
+        "type": str,
+        "doc": "Filter by discipline ({})".format(
+            ",".join(vtes.VTES.search_dimensions["discipline"])
+        ),
+    },
+    {
+        "name": "clan",
+        "type": str,
+        "doc": "Filter by clan ({})".format(
+            ",".join(vtes.VTES.search_dimensions["clan"])
+        ),
+    },
+    {
+        "name": "type",
+        "type": str,
+        "doc": "Filter by card type ({})".format(
+            ",".join(vtes.VTES.search_dimensions["type"])
+        ),
+    },
+    {
+        "name": "group",
+        "type": int,
+        "doc": "Filter by grouping ({})".format(
+            ",".join(map(str, vtes.VTES.search_dimensions["group"]))
+        ),
+    },
+    {
+        "name": "bonus",
+        "type": str,
+        "doc": "Filter by bonus ({})".format(
+            ",".join(vtes.VTES.search_dimensions["bonus"])
+        ),
+    },
+    {
+        "name": "text",
+        "type": str,
+        "doc": "Filter by text (including name and flavor text)",
+    },
+    {
+        "name": "trait",
+        "type": str,
+        "doc": "Filter by trait ({})".format(
+            ",".join(vtes.VTES.search_dimensions["trait"])
+        ),
+    },
+    {
+        "name": "capacity",
+        "type": str,
+        "doc": "Filter by capacity ({})".format(
+            ",".join(map(str, vtes.VTES.search_dimensions["capacity"]))
+        ),
+    },
+    {"name": "set", "type": str, "doc": "Filter by set"},
+    {
+        "name": "sect",
+        "type": str,
+        "doc": "Filter by sect ({})".format(
+            ",".join(vtes.VTES.search_dimensions["sect"])
+        ),
+    },
+    {
+        "name": "title",
+        "type": str,
+        "doc": "Filter by title ({})".format(
+            ",".join(vtes.VTES.search_dimensions["title"])
+        ),
+    },
+    {
+        "name": "city",
+        "type": str,
+        "doc": "Filter by city",
+    },
+    {
+        "name": "rarity",
+        "type": str,
+        "doc": "Filter by rarity ({})".format(
+            ",".join(vtes.VTES.search_dimensions["rarity"])
+        ),
+    },
+    {
+        "name": "precon",
+        "type": str,
+        "doc": "Filter by preconstructed starter",
+    },
+    {
+        "name": "artist",
+        "type": str,
+        "doc": "Filter by artist",
+    },
+    {
+        "name": "exclude",
+        "type": str,
+        "doc": "Exclude given types ({})".format(
+            ",".join(vtes.VTES.search_dimensions["type"])
+        ),
+    },
+]
+TWDA_ARGS = [
+    {
+        "name": "card",
+        "type": str,
+        "doc": "Filter by card names: 'Fame|Carrion Crows'",
+    },
+    {
+        "name": "deck",
+        "type": str,
+        "doc": "TWDA ID of a deck: 2016gncbg",
+    },
+    {
+        "name": "players",
+        "type": int,
+        "doc": "Minimum number of players",
+        "default": 0,
+    },
+    {
+        "name": "date_from",
+        "type": lambda s: arrow.get(s).date(),
+        "doc": "Year (included) for deck searching",
+        "default": arrow.get(1994).date(),
+    },
+    {
+        "name": "date_to",
+        "type": lambda s: arrow.get(s).date(),
+        "doc": "Year (excluded) for deck searching",
+        "default": arrow.now().date(),
+    },
+    {
+        "name": "author",
+        "type": str,
+        "doc": "Looking for TWDA by player name: 'Ben peal'",
+    },
+]
+
 #: Variables needed for interaction with the bot
 PREFIXES = ("mr.winthrop ", "winthrop ", "mr.w ", "mrw ")
 COMMANDS = (
@@ -181,6 +371,7 @@ COMMANDS = (
         ),
         "brief": "Display top cards (most played together)",
         "usage": "clan=!Toreador discipline=aus",
+        "arguments": VTES_ARGS,
     },
     {
         "name": "deck",
@@ -190,12 +381,17 @@ COMMANDS = (
         ),
         "brief": "Display a list of TWDA decks from IDs, author names or card names",
         "usage": "author='Ben Peal'",
+        "arguments": TWDA_ARGS,
     },
     {
         "name": "seats",
         "help": "Randomise seating from 1 to 5 players",
         "brief": "Randomise seating",
         "usage": "Player 1 | Player 2 | Player 3 | Player 4 | Player 5",
+    },
+    {
+        "name": "help",
+        "display": "no",
     },
 )
 CALLS = {
@@ -204,6 +400,7 @@ CALLS = {
     "top": fn_top,
     "deck": fn_deck,
     "seats": fn_seats,
+    "help": fn_help,
 }
 
 load_dotenv()
@@ -231,7 +428,7 @@ async def on_message(message: discord.Message):
                 command["name"] or "none",
                 content,
             )
-            await message.reply(**CALLS[command["name"]](content))
+            await message.channel.send(**CALLS[command["name"]](content))
         # Default behaviour
         else:
             logger.info(
