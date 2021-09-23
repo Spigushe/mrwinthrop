@@ -3,7 +3,8 @@ import logging
 import os
 import io
 import random
-from datetime import date
+import unidecode
+import datetime
 from dotenv import load_dotenv
 
 import discord
@@ -20,6 +21,13 @@ client = discord.Client()
 
 def unpack(str):
     return str.split("|") if "|" in str else [str]
+
+
+def normalize(s):
+    """Normalize a string for indexing: unidecode and lowercase"""
+    if not isinstance(s, str):
+        return s
+    return unidecode.unidecode(s).lower().strip()
 
 
 def shorten(str):
@@ -155,10 +163,59 @@ def fn_deck(message: str, args: list) -> dict:
     Returns:
         Keyword args for the discord channel.send() function
     """
-    return {
-        "content": "List of arguments: "
-        + ",".join([(str(a["arg"]) + " " + str(a["content"])) for a in args])
-    }
+    # deck_ids
+    deck_ids = unpack(args["deck"])
+    deck_ids = [i for i in deck_ids if i in twda.TWDA]
+    # cards
+    cards = unpack(args["card"])
+    cards = [vtes.VTES[c] for c in cards if c in vtes.VTES]
+    # authors
+    authors = unpack(args["author"])
+    authors = [normalize(a) for a in authors if normalize(a) in twda.TWDA.by_author]
+    # Filtering
+    decks = list(twda.TWDA.values())
+    if args["date_from"]:
+        decks = [d for d in decks if d.date >= args["date_from"]]
+    if args["date_to"]:
+        decks = [d for d in decks if d.date < args["date_to"]]
+    if args["players"]:
+        decks = [d for d in decks if d.players_count >= args["players"]]
+    if deck_ids or cards or authors:
+        decks = [
+            d
+            for d in decks
+            if d.id in deck_ids
+            or (cards and all(c in d for c in cards))
+            or normalize(d.player) in authors
+            or normalize(d.author) in authors
+        ]
+    # Preparing output
+    if len(decks) == 1:
+        full = True
+    else:
+        full = False
+        output = f"-- {len(decks)} decks --\n"
+
+    for d in sorted(decks, key=lambda a: a.date):
+        if full:
+            output = (
+                f"[{d.id:<15}]===================================================\n"
+            )
+            output = output + d.to_vdb()
+            deck_file = io.StringIO(d.to_txt())
+            # Returning file to dicord
+            return {
+                "content": output,
+                "file": discord.File(fp=deck_file, filename=d.id),
+            }
+        else:
+            output = output + f"[{d.id}] {d.name}\n"
+            if len(output) > 500:
+                output = output + "..."
+                break
+
+    if not full:
+        return {"content": "```" + output + "```"}
 
 
 def fn_seats(message: str, args: list) -> dict:
@@ -347,15 +404,15 @@ TWDA_ARGS = [
     },
     {
         "name": "date_from",
-        "type": int,
+        "type": "date",
         "doc": "Year (included) for deck searching",
-        "default": 1994,
+        "default": datetime.date(1994,1,1),
     },
     {
         "name": "date_to",
-        "type": int,
+        "type": "date",
         "doc": "Year (excluded) for deck searching",
-        "default": date.today().year,
+        "default": datetime.date.today(),
     },
     {
         "name": "author",
@@ -498,7 +555,9 @@ def handle_message(message: str, prefixes: tuple, commands: tuple):
                         # There is a need to remove the next argument key
                         arg = arg[: (len(last_word(arg)) + 1) * -1]
                     # Check type
-                    if not isinstance(arg, a["type"]):
+                    if a["type"] == "date":
+                        arg = datetime.date(int(arg),1,1)
+                    elif not isinstance(arg, a["type"]):
                         arg = a["type"](arg)  # Convert to chosen type
                     # Add to list of args
                     args[test] = arg
