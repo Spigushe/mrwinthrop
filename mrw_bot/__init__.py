@@ -52,8 +52,8 @@ def last_word(str) -> str:
     return new
 
 
-#: Functions to deal with commands
-def fn_build(message: str, args: list) -> dict:
+#: Functions to handle commands
+def fn_build(message: str, args: dict) -> dict:
     """Build command
 
     Args:
@@ -84,7 +84,7 @@ def fn_build(message: str, args: list) -> dict:
     }
 
 
-def fn_affinity(message: str, args: list) -> dict:
+def fn_affinity(message: str, args: dict) -> dict:
     """Affinity command
 
     Args:
@@ -139,7 +139,7 @@ def fn_affinity(message: str, args: list) -> dict:
     return {"content": "Affinity for " + card_names[:-2] + "```" + str + "```"}
 
 
-def fn_top(message: str, args: list) -> dict:
+def fn_top(message: str, args: dict) -> dict:
     """Top command
 
     Args:
@@ -154,7 +154,7 @@ def fn_top(message: str, args: list) -> dict:
     }
 
 
-def fn_deck(message: str, args: list) -> dict:
+def fn_deck(message: str, args: dict) -> dict:
     """Deck command
 
     Args:
@@ -220,7 +220,7 @@ def fn_deck(message: str, args: list) -> dict:
         return {"content": "```" + output + "```"}
 
 
-def fn_seats(message: str, args: list) -> dict:
+def fn_seats(message: str, args: dict) -> dict:
     """Seats command
 
     Args:
@@ -240,7 +240,7 @@ def fn_seats(message: str, args: list) -> dict:
     return {"content": " > ".join(seats)}
 
 
-def fn_help(message: str, args: list) -> dict:
+def fn_help(message: str, args: dict) -> dict:
     """Help command
 
     Args:
@@ -311,7 +311,7 @@ VTES_ARGS = [
     },
     {
         "name": "group",
-        "type": int,
+        "type": str,
         "doc": "Filter by grouping ({})".format(
             ",".join(map(str, vtes.VTES.search_dimensions["group"]))
         ),
