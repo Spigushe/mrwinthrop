@@ -163,31 +163,33 @@ def fn_deck(message: str, args: list) -> dict:
     Returns:
         Keyword args for the discord channel.send() function
     """
-    # deck_ids
-    deck_ids = unpack(args["deck"])
-    deck_ids = [i for i in deck_ids if i in twda.TWDA]
-    # cards
-    cards = unpack(args["card"])
-    cards = [vtes.VTES[c] for c in cards if c in vtes.VTES]
-    # authors
-    authors = unpack(args["author"])
-    authors = [normalize(a) for a in authors if normalize(a) in twda.TWDA.by_author]
-    # Filtering
     decks = list(twda.TWDA.values())
+    # Filtering
     if args["date_from"]:
         decks = [d for d in decks if d.date >= args["date_from"]]
     if args["date_to"]:
         decks = [d for d in decks if d.date < args["date_to"]]
     if args["players"]:
         decks = [d for d in decks if d.players_count >= args["players"]]
-    if deck_ids or cards or authors:
+    # deck_ids
+    deck_ids = [i for i in unpack(args["deck"]) if i in twda.TWDA]
+    if deck_ids:
+        decks = [d for d in decks if d.id in deck_ids]
+    # cards
+    cards = [vtes.VTES[c] for c in unpack(args["card"]) if c in vtes.VTES]
+    if cards:
+        decks = [d for d in decks if (cards and all(c in d for c in cards))]
+    # authors
+    authors = [
+        normalize(a)
+        for a in unpack(args["author"])
+        if normalize(a) in twda.TWDA.by_author
+    ]
+    if authors:
         decks = [
             d
             for d in decks
-            if d.id in deck_ids
-            or (cards and all(c in d for c in cards))
-            or normalize(d.player) in authors
-            or normalize(d.author) in authors
+            if normalize(d.player) in authors or normalize(d.author) in authors
         ]
     # Preparing output
     if len(decks) == 1:
@@ -406,7 +408,7 @@ TWDA_ARGS = [
         "name": "date_from",
         "type": "date",
         "doc": "Year (included) for deck searching",
-        "default": datetime.date(1994,1,1),
+        "default": datetime.date(1994, 1, 1),
     },
     {
         "name": "date_to",
@@ -556,7 +558,7 @@ def handle_message(message: str, prefixes: tuple, commands: tuple):
                         arg = arg[: (len(last_word(arg)) + 1) * -1]
                     # Check type
                     if a["type"] == "date":
-                        arg = datetime.date(int(arg),1,1)
+                        arg = datetime.date(int(arg), 1, 1)
                     elif not isinstance(arg, a["type"]):
                         arg = a["type"](arg)  # Convert to chosen type
                     # Add to list of args
