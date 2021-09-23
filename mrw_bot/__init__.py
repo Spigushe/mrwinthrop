@@ -460,7 +460,7 @@ async def on_message(message: discord.Message):
             await message.reply("Here's a cup of fresh blood, sir/madam")
 
 
-def handle_message(message: str, prefixes: tuple, commands: tuple) -> str:
+def handle_message(message: str, prefixes: tuple, commands: tuple):
     """Function that removes start of message
 
     Args:
@@ -482,7 +482,7 @@ def handle_message(message: str, prefixes: tuple, commands: tuple) -> str:
             message = message[len(c["name"]) + 1 :]
             break
     # Check for arguments
-    args = []
+    args = {}
     if command and "arguments" in command.keys():
         look_args = message
         arg_presence = True
@@ -493,7 +493,6 @@ def handle_message(message: str, prefixes: tuple, commands: tuple) -> str:
                 test = look_args.split("=", 1)[0]
                 if test.lower() == a["name"]:
                     # Get value of arg
-                    print(f"look_args: {look_args}")
                     arg = look_args[len(test) + 1 :].split("=", 1)[0]
                     if "=" in look_args[len(test) + 1 :]:
                         # There is a need to remove the next argument key
@@ -502,12 +501,17 @@ def handle_message(message: str, prefixes: tuple, commands: tuple) -> str:
                     if not isinstance(arg, a["type"]):
                         arg = a["type"](arg)  # Convert to chosen type
                     # Add to list of args
-                    args.append({"arg": test, "content": arg})
+                    args[test] = arg
                     # Updating string
                     look_args = look_args[len(test) + len(str(arg)) + 1 :]
                     arg_presence = True
-
-        print(args)
+        # Defaulting missing arguments
+        for a in command["arguments"]:
+            if a["name"] not in args.keys():
+                if "default" in a.keys():
+                    args[a["name"]] = a["default"]
+                else:
+                    args[a["name"]] = a["type"]("")
 
     return command, message, args
 
