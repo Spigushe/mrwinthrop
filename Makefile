@@ -12,6 +12,7 @@ release:
 	pip install -e ".[dev]"
 
 update:
+	pip install --upgrade pip
 	pip install --upgrade --upgrade-strategy eager -e ".[dev]"
 
 serve:
