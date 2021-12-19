@@ -14,42 +14,13 @@ from krcg import twda
 from krcg import analyzer
 from krcg_cli.subcommands import _utils
 
+from .utils import *
+
 logger = logging.getLogger()
 logging.basicConfig(format="[%(levelname)7s] %(message)s")
 client = discord.Client()
 
 
-def unpack(str):
-    return str.split("|") if "|" in str else [str]
-
-
-def normalize(s):
-    """Normalize a string for indexing: unidecode and lowercase"""
-    if not isinstance(s, str):
-        return s
-    return unidecode.unidecode(s).lower().strip()
-
-
-def shorten(str):
-    if len(str) > 80:
-        return str[:77] + "..."
-    return str
-
-
-def last_word(str) -> str:
-    # taking empty string
-    new = ""
-    # calculating length of string
-    length = len(str)
-    # traversing from last
-    for i in range(length - 1, 0, -1):
-        # if space is occured then return
-        if str[i] == " ":
-            # return reverse of newstring
-            return new[::-1]
-        else:
-            new = new + str[i]
-    return new
 
 
 #: Functions to handle commands
