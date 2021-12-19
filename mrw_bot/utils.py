@@ -25,3 +25,25 @@ def filter_twda(args):
     if players:
         decks = [d for d in decks if (d.players_count or 0) >= players]
     return decks
+
+
+def shorten(str):
+    if len(str) > 80:
+        return str[:77] + "..."
+    return str
+
+
+def last_word(str) -> str:
+    # taking empty string
+    new = ""
+    # calculating length of string
+    length = len(str)
+    # traversing from last
+    for i in range(length - 1, 0, -1):
+        # if space is occured then return
+        if str[i] == " ":
+            # return reverse of newstring
+            return new[::-1]
+        else:
+            new = new + str[i]
+    return new
