@@ -358,6 +358,11 @@ VTES_ARGS = [
         ),
     },
     {
+        "name": "text",
+        "type": str,
+        "doc": "Filter by text",
+    },
+    {
         "name": "city",
         "type": str,
         "doc": "Filter by city",
@@ -422,6 +427,9 @@ TWDA_ARGS = [
         "doc": "Looking for TWDA by player name: 'Ben peal'",
     },
 ]
+ALL_ARGS = []
+ALL_ARGS.extend(VTES_ARGS)
+ALL_ARGS.extend(TWDA_ARGS)
 
 #: Variables needed for interaction with the bot
 PREFIXES = ("mr.winthrop ", "winthrop ", "mr.w ", "mrw ")
@@ -452,7 +460,7 @@ COMMANDS = (
         ),
         "brief": "Display top cards (most played together)",
         "usage": "clan=!Toreador discipline=aus",
-        "arguments": VTES_ARGS,
+        "arguments": ALL_ARGS,
     },
     {
         "name": "deck",
