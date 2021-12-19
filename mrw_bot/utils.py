@@ -2,8 +2,10 @@ import unidecode
 from krcg import twda
 
 
-def unpack(str):
-    return str.split("|") if "|" in str else [str]
+def unpack(s):
+    if not isinstance(s, str):
+        return s
+    return s.split("|") if "|" in s else [s]
 
 
 def normalize(s):
