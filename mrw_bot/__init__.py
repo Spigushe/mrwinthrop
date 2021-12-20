@@ -21,6 +21,51 @@ logging.basicConfig(format="[%(levelname)7s] %(message)s")
 client = discord.Client()
 
 
+def filter_cards(args: dict):
+    args = {k: unpack(v) for k, v in args.items() if v != ""}
+    args = {
+        k: v
+        for k, v in args.items()
+        if k
+        in {
+            "discipline",
+            "clan",
+            "type",
+            "group",
+            "exclude-type",
+            "bonus",
+            "text",
+            "trait",
+            "capacity",
+            "set",
+            "sect",
+            "title",
+            "city",
+            "rarity",
+            "precon",
+            "artist",
+        }
+    }
+    # Check clan antitribu attribute
+    clans = args.pop("clan", None)
+    if clans:
+        args["clan"] = []
+        for clan in clans:
+            if clan[0] == "!":
+                clan = clan[1:] + " antitribu"
+            args["clan"].append(clan)
+    # Text should be string
+    text = args.pop("text", None)
+    if text:
+        args["text"] = " ".join(text)
+    """exclude_type = args.pop("exclude_type", None)
+    if exclude_type:
+        args["type"] = list(
+            args.get("type", set())
+            | (set(vtes.VTES.search_dimensions["type"]) - set(exclude_type))
+        )"""
+    print(args)
+    return vtes.VTES.search(**args)
 
 
 #: Functions to handle commands
@@ -119,10 +164,19 @@ def fn_top(message: str, args: dict) -> dict:
     Returns:
         Keyword args for the discord channel.send() function
     """
-    return {
-        "content": "List of arguments: "
-        + ",".join([(str(a["arg"]) + " " + str(a["content"])) for a in args])
-    }
+    candidates = filter_cards(args)
+    if not candidates:
+        return {"content": "No card match"}
+    decks = filter_twda(args)
+    A = analyzer.Analyzer(decks)
+    A.refresh(condition=lambda c: c in candidates)
+    str = ""
+    for card, count in A.played.most_common()[:10]:
+        str = str + (
+            f"{card.name:<30} (played in {count} decks, typically "
+            f"{_utils.typical_copies(A, card)})\n"
+        )
+    return {"content": "```" + str + "```"}
 
 
 def fn_deck(message: str, args: dict) -> dict:
